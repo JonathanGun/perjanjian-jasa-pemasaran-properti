@@ -13,6 +13,8 @@
 3. [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/) for generating PDF
 4. [Google Cloud Platform](https://console.cloud.google.com/) for the deployment
 5. [Google Drive](https://drive.google.com/) for the storage solution
+6. [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) for containerization and local build
+7. [Google Cloud Run](https://cloud.google.com/run) for production deployment
 
 ## Development
 
