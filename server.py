@@ -1,94 +1,68 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import pymupdf
-import io
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-from dotenv import load_dotenv
-import os
-
-# Load environment variables from .env file
-load_dotenv()
+from fastapi import FastAPI, HTTPException, Response
+from config import config
+from storage import GoogleDriveClient
+from pdf_generator import DummyPDFGenerator, PerjanjianJasaPemasaranPropertiPDFGenerator
+from models import DataPerjanjianPemasaranProperti, User
+from logger import logger
 
 # Initialize FastAPI app
 app = FastAPI()
 
-
-# Pydantic model for the user
-class User(BaseModel):
-    name: str
-
-
-# Google Drive API setup
-SERVICE_ACCOUNT_FILE = os.getenv("HEPI_SERVICE_ACCOUNT_FILE")
-PDF_RESULT_DRIVE_ID = os.getenv("HEPI_PDF_RESULT_DRIVE_ID")
-
-if not SERVICE_ACCOUNT_FILE:
-    raise ValueError("HEPI_SERVICE_ACCOUNT_FILE environment variable is not set")
-if not PDF_RESULT_DRIVE_ID:
-    raise ValueError("HEPI_PDF_RESULT_FOLDER_ID environment variable is not set")
-
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+# Initialize Google Drive client and PDF generator
+google_drive_client = GoogleDriveClient(config.HEPI_SERVICE_ACCOUNT_FILE)
+# pdf_generator = DummyPDFGenerator(config)
+pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
 
-def authenticate_google_drive():
-    """Authenticate using a service account and return the Google Drive API service."""
-    creds = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
-    )
-    return build("drive", "v3", credentials=creds)
+# Endpoint to generate, upload, and share a PDF
+@app.post("/submit/")
+async def submit(data: DataPerjanjianPemasaranProperti):
+    if not config.HEPI_FF_SUBMIT_FORM:
+        logger.warning("Submit feature is disabled")
+        raise HTTPException(status_code=403, detail="Feature is disabled")
 
-
-def upload_to_google_drive(service, file_stream, filename, folder_id=None):
-    """Upload a file to Google Drive."""
-    file_metadata = {"name": filename}
-    if folder_id:
-        file_metadata["parents"] = [folder_id]
-    media = MediaIoBaseUpload(file_stream, mimetype="application/pdf")
-    file = (
-        service.files()
-        .create(body=file_metadata, media_body=media, fields="id")
-        .execute()
-    )
-    return file.get("id")
-
-
-# Endpoint to generate and upload a PDF
-@app.post("/generate-pdf/")
-async def generate_pdf(user: User):
     try:
-        # Create a PDF document
-        pdf_stream = io.BytesIO()
-        doc = pymupdf.open()
-        page = doc.new_page()
+        # Generate and upload the PDF
+        logger.info(f"Generating PDF for user: {data.name}")
+        pdf_stream = pdf_generator.generate(data)
 
-        # Add text to the PDF
-        text = f"Hello, {user.name}!"
-        page.insert_text(
-            point=(50, 70),  # Position (x, y) on the page
-            text=text,
-            fontsize=24,
-            fontname="helv",
-            color=(0, 0, 0),  # Black color
+        filename = f"hello_{data.name}.pdf"
+        logger.info(f"Uploading PDF to Google Drive: {filename}")
+        file_id = google_drive_client.upload(
+            pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID
         )
 
-        # Save the PDF to the stream
-        doc.save(pdf_stream)
-        doc.close()
+        # Share the file with the user's email
+        logger.info(f"Sharing PDF with email: {data.email}")
+        google_drive_client.share(file_id, data.email)
 
-        # Reset the stream position to the beginning
-        pdf_stream.seek(0)
+        logger.info(f"PDF uploaded and shared successfully: {file_id}")
+        return {"message": "PDF uploaded and shared", "file_id": file_id}
+    except Exception as e:
+        logger.error(f"Error in /submit/ endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # Authenticate Google Drive using the service account
-        drive_service = authenticate_google_drive()
 
-        # Upload the PDF to Google Drive
-        folder_id = PDF_RESULT_DRIVE_ID
-        filename = f"hello_{user.name}.pdf"
-        file_id = upload_to_google_drive(drive_service, pdf_stream, filename, folder_id)
+@app.get("/pdf/{filename}")
+async def get_pdf(filename: str):
+    if not config.HEPI_FF_DOWNLOAD_PDF:
+        logger.warning("Download PDF feature is disabled")
+        raise HTTPException(status_code=403, detail="Feature is disabled")
 
-        return {"message": "PDF uploaded to Google Drive", "file_id": file_id}
+    try:
+        # Get the file URL
+        try:
+            logger.info(f"Fetching file by name: {filename}")
+            file_url = google_drive_client.get_file_url(filename)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="File not found")
+
+        # Redirect to the file URL
+        logger.info(f"Redirecting to sharable link: {file_url}")
+        return Response(
+            status_code=302,
+            headers={"Location": file_url},
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -97,4 +71,5 @@ async def generate_pdf(user: User):
 if __name__ == "__main__":
     import uvicorn
 
+    logger.info("Starting FastAPI server")
     uvicorn.run(app, host="0.0.0.0", port=8000)
