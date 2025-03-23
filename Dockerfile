@@ -6,7 +6,9 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY main.py .
+COPY utils/ utils/
+COPY src/ src/
 
 EXPOSE 8000
 

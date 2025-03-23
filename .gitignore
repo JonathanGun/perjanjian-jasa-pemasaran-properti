@@ -52,5 +52,5 @@ ENV/
 Thumbs.db
 
 .env*
-!.env.example
+!.env*.example
 sample.pdf

@@ -87,3 +87,25 @@ ngrok http 8000
 ```
 
 Setup [tally](https://tally.so/), connect the webhook
+
+## Deployment
+
+Build the docker image
+
+```bash
+make build
+```
+
+Push the image to container registry
+
+```bash
+make push
+```
+
+Deploy to cloud run using terraform
+
+```bash
+make deploy
+```
+
+Get the cloud run URL and put it in tally webhook and redirection url. Add `/submit` and `/pdf` suffix after the URL.

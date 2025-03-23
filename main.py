@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Header, Response
 from utils.logger import logger
 from utils.config import config
 from utils.storage import GoogleDriveClient
@@ -14,9 +14,18 @@ google_drive_client = GoogleDriveClient()
 pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
 
+# Dependency to verify the API key
+async def verify_api_key(api_key: str = Header(None, alias="x-api-key")):
+    if api_key is None or api_key != config.API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    return True
+
+
 # Endpoint to generate, upload, and share a PDF
 @app.post("/submit/")
-async def submit(data: DataPerjanjianPemasaranProperti):
+async def submit(
+    data: DataPerjanjianPemasaranProperti, _: bool = Depends(verify_api_key)
+):
     if not config.HEPI_FF_SUBMIT_FORM:
         logger.warning("Submit feature is disabled")
         raise HTTPException(status_code=403, detail="Feature is disabled")

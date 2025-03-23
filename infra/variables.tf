@@ -37,3 +37,8 @@ variable "pdf_generator_port" {
   type        = number
   default     = 8000
 }
+
+variable "pdf_generator_api_key" {
+  description = "The API key for the PDF generator service"
+  type        = string
+}
