@@ -51,5 +51,6 @@ ENV/
 # Windows-specific files
 Thumbs.db
 
-.env
+.env*
+!.env.example
 sample.pdf

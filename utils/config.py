@@ -8,7 +8,6 @@ load_dotenv()
 class Config:
     def __init__(self):
         # Google Drive configuration
-        self.HEPI_SERVICE_ACCOUNT_FILE = os.getenv("HEPI_SERVICE_ACCOUNT_FILE")
         self.HEPI_PDF_RESULT_DRIVE_ID = os.getenv("HEPI_PDF_RESULT_DRIVE_ID")
 
         # Feature flag
@@ -21,6 +20,7 @@ class Config:
 
         # Other
         self.DEBUG = os.getenv("DEBUG", "False").lower() == "true"
+        self.PORT = int(os.getenv("PORT", 8000))
 
 
 # Singleton instance of Config

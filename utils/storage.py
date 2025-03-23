@@ -1,7 +1,7 @@
 import abc
 import enum
 import io
-from google.oauth2 import service_account
+from google.auth import default
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 
@@ -32,18 +32,17 @@ class StorageClient(abc.ABC):
 
 
 class GoogleDriveClient(StorageClient):
-    def __init__(self, service_account_file, scopes=None):
+    def __init__(self, scopes=None):
         if scopes is None:
             scopes = ["https://www.googleapis.com/auth/drive"]
-        self.service_account_file = service_account_file
         self.scopes = scopes
         self.service = self._authenticate()
 
     def _authenticate(self):
         """Authenticate using a service account and return the Google Drive API service."""
-        creds = service_account.Credentials.from_service_account_file(
-            self.service_account_file, scopes=self.scopes
-        )
+        creds, _ = default(scopes=self.scopes)
+        if creds is None:
+            raise ValueError("No valid credentials found")
         return build("drive", "v3", credentials=creds)
 
     def upload(self, file_stream, filename, folder_id=None):

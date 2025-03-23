@@ -9,7 +9,7 @@ from src.models import DataPerjanjianPemasaranProperti
 app = FastAPI()
 
 # Initialize Google Drive client and PDF generator
-google_drive_client = GoogleDriveClient(config.HEPI_SERVICE_ACCOUNT_FILE)
+google_drive_client = GoogleDriveClient()
 # pdf_generator = DummyPDFGenerator(config)
 pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
@@ -76,4 +76,4 @@ if __name__ == "__main__":
     import uvicorn
 
     logger.info("Starting FastAPI server")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=config.PORT)
