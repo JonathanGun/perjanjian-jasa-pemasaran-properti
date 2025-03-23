@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Response
 from config import config
 from storage import GoogleDriveClient
-from pdf_generator import DummyPDFGenerator, PerjanjianJasaPemasaranPropertiPDFGenerator
-from models import DataPerjanjianPemasaranProperti, User
+from pdf_generator import PerjanjianJasaPemasaranPropertiPDFGenerator
+from models import DataPerjanjianPemasaranProperti
 from logger import logger
 
 # Initialize FastAPI app
@@ -21,20 +21,23 @@ async def submit(data: DataPerjanjianPemasaranProperti):
         logger.warning("Submit feature is disabled")
         raise HTTPException(status_code=403, detail="Feature is disabled")
 
+    logger.debug(f"Received data: {data}")
+
     try:
         # Generate and upload the PDF
         logger.info(f"Generating PDF for user: {data.name}")
         pdf_stream = pdf_generator.generate(data)
 
-        filename = f"hello_{data.name}.pdf"
+        filename = f"{data.data.responseId}.pdf"
         logger.info(f"Uploading PDF to Google Drive: {filename}")
         file_id = google_drive_client.upload(
             pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID
         )
 
         # Share the file with the user's email
-        logger.info(f"Sharing PDF with email: {data.email}")
-        google_drive_client.share(file_id, data.email)
+        if data.user_email:
+            logger.info(f"Sharing PDF with email: {data.user_email}")
+            google_drive_client.share(file_id, data.user_email)
 
         logger.info(f"PDF uploaded and shared successfully: {file_id}")
         return {"message": "PDF uploaded and shared", "file_id": file_id}
@@ -52,6 +55,7 @@ async def get_pdf(filename: str):
     try:
         # Get the file URL
         try:
+            filename = f"{filename}.pdf"
             logger.info(f"Fetching file by name: {filename}")
             file_url = google_drive_client.get_file_url(filename)
         except FileNotFoundError:

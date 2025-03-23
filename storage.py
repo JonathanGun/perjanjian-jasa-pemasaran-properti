@@ -61,6 +61,9 @@ class GoogleDriveClient(StorageClient):
 
     def share(self, file_id, email, role=FileRole.READER):
         """Share a file with a specific email."""
+        if not email:
+            raise ValueError("Email address is required")
+
         permission = {
             "type": "user",
             "role": role.value,

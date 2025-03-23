@@ -1,5 +1,19 @@
 # Perjanjian Jasa Pemasaran Properti
 
+## Prerequisites
+
+1. Python
+2. Python packages: `pip` and `venv`
+3. [ngrok](https://ngrok.com/)
+
+## Tech Stacks
+
+1. [FastAPI](https://fastapi.tiangolo.com/) for the http framework
+2. [Pydantic](https://docs.pydantic.dev/latest/) for the data model and validation
+3. [PyMuPDF](https://pymupdf.readthedocs.io/en/latest/) for generating PDF
+4. [Google Cloud Platform](https://console.cloud.google.com/) for the deployment
+5. [Google Drive](https://drive.google.com/) for the storage solution
+
 ## Development
 
 Prepare gcloud project
@@ -52,3 +66,22 @@ Install requirements
 pip install -r requirements.txt
 ```
 
+Prepare `.env` and fill the values
+
+```bash
+cp .env.example .env
+```
+
+Start server
+
+```bash
+python server.py
+```
+
+Expose to ngrok
+
+```bash
+ngrok http 8000
+```
+
+Setup [tally](https://tally.so/), connect the webhook
