@@ -1,8 +1,15 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import pymupdf
 import io
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -13,7 +20,41 @@ class User(BaseModel):
     name: str
 
 
-# Endpoint to generate and return a PDF
+# Google Drive API setup
+SERVICE_ACCOUNT_FILE = os.getenv("HEPI_SERVICE_ACCOUNT_FILE")
+PDF_RESULT_DRIVE_ID = os.getenv("HEPI_PDF_RESULT_DRIVE_ID")
+
+if not SERVICE_ACCOUNT_FILE:
+    raise ValueError("HEPI_SERVICE_ACCOUNT_FILE environment variable is not set")
+if not PDF_RESULT_DRIVE_ID:
+    raise ValueError("HEPI_PDF_RESULT_FOLDER_ID environment variable is not set")
+
+SCOPES = ["https://www.googleapis.com/auth/drive"]
+
+
+def authenticate_google_drive():
+    """Authenticate using a service account and return the Google Drive API service."""
+    creds = service_account.Credentials.from_service_account_file(
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
+    return build("drive", "v3", credentials=creds)
+
+
+def upload_to_google_drive(service, file_stream, filename, folder_id=None):
+    """Upload a file to Google Drive."""
+    file_metadata = {"name": filename}
+    if folder_id:
+        file_metadata["parents"] = [folder_id]
+    media = MediaIoBaseUpload(file_stream, mimetype="application/pdf")
+    file = (
+        service.files()
+        .create(body=file_metadata, media_body=media, fields="id")
+        .execute()
+    )
+    return file.get("id")
+
+
+# Endpoint to generate and upload a PDF
 @app.post("/generate-pdf/")
 async def generate_pdf(user: User):
     try:
@@ -39,14 +80,15 @@ async def generate_pdf(user: User):
         # Reset the stream position to the beginning
         pdf_stream.seek(0)
 
-        # Return the PDF as a streaming response
-        return StreamingResponse(
-            pdf_stream,
-            media_type="application/pdf",
-            headers={
-                "Content-Disposition": f"attachment; filename=hello_{user.name}.pdf"
-            },
-        )
+        # Authenticate Google Drive using the service account
+        drive_service = authenticate_google_drive()
+
+        # Upload the PDF to Google Drive
+        folder_id = PDF_RESULT_DRIVE_ID
+        filename = f"hello_{user.name}.pdf"
+        file_id = upload_to_google_drive(drive_service, pdf_stream, filename, folder_id)
+
+        return {"message": "PDF uploaded to Google Drive", "file_id": file_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
