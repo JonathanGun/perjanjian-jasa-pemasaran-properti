@@ -1,7 +1,7 @@
 import abc
 import pymupdf
 import io
-from models import DataPerjanjianPemasaranProperti
+from src.models import DataPerjanjianPemasaranProperti
 
 
 class PDFGenerator(abc.ABC):
