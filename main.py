@@ -1,4 +1,7 @@
-from fastapi import Depends, FastAPI, HTTPException, Header, Response
+import base64
+import hmac
+import hashlib
+from fastapi import Depends, FastAPI, HTTPException, Header, Request, Response
 from utils.logger import logger
 from utils.config import config
 from utils.storage import GoogleDriveClient
@@ -17,14 +20,40 @@ pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
 # Dependency to verify the API key
 async def verify_api_key(api_key: str = Header(None, alias="x-api-key")):
     if api_key is None or api_key != config.API_KEY:
+        logger.error("Invalid API key")
         raise HTTPException(status_code=403, detail="Invalid API key")
+    return True
+
+
+# Function to verify the Tally signature
+def verify_tally_signature(payload: bytes, received_signature: str) -> bool:
+    """
+    Verify the Tally webhook signature.
+    """
+    digest = hmac.new(
+        config.TALLY_SIGNING_SECRET.encode("utf-8"), payload, digestmod=hashlib.sha256
+    ).digest()
+    computed_hmac = base64.b64encode(digest)
+
+    return hmac.compare_digest(computed_hmac, received_signature.encode("utf-8"))
+
+
+# Dependency to verify the Tally signature
+async def verify_webhook(
+    request: Request, tally_signature: str = Header(None, alias="tally-signature")
+):
+    payload = await request.body()
+    if tally_signature is None or not verify_tally_signature(payload, tally_signature):
+        raise HTTPException(status_code=401, detail="Invalid signature")
     return True
 
 
 # Endpoint to generate, upload, and share a PDF
 @app.post("/submit/")
 async def submit(
-    data: DataPerjanjianPemasaranProperti, _: bool = Depends(verify_api_key)
+    data: DataPerjanjianPemasaranProperti,
+    _: bool = Depends(verify_webhook),
+    __: bool = Depends(verify_api_key),
 ):
     if not config.HEPI_FF_SUBMIT_FORM:
         logger.warning("Submit feature is disabled")

@@ -42,3 +42,8 @@ variable "pdf_generator_api_key" {
   description = "The API key for the PDF generator service"
   type        = string
 }
+
+variable "pdf_generator_tally_signing_secret" {
+  description = "The signing secret for tally"
+  type        = string
+}

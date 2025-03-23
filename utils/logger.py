@@ -2,6 +2,7 @@ import logging
 import logging.config
 import sys
 from pathlib import Path
+from utils.config import config
 
 # Create logs directory if it doesn't exist
 logs_dir = Path("logs")
@@ -29,7 +30,7 @@ logging_config = {
         },
     },
     "root": {
-        "level": "INFO",
+        "level": config.LOG_LEVEL,
         "handlers": ["console", "file"],
     },
 }

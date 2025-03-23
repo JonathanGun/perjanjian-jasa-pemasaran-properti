@@ -21,7 +21,9 @@ class Config:
         # Other
         self.DEBUG = os.getenv("DEBUG", "False").lower() == "true"
         self.PORT = int(os.getenv("PORT", 8000))
+        self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
         self.API_KEY = os.getenv("HEPI_API_KEY")
+        self.TALLY_SIGNING_SECRET = os.getenv("HEPI_TALLY_SIGNING_SECRET")
 
 
 # Singleton instance of Config

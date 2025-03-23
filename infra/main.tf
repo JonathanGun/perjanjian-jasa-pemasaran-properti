@@ -38,6 +38,10 @@ resource "google_cloud_run_v2_service" "pdf_generator_service" {
         name  = "HEPI_API_KEY"
         value = var.pdf_generator_api_key
       }
+      env {
+        name  = "HEPI_TALLY_SIGNING_SECRET"
+        value = var.pdf_generator_tally_signing_secret
+      }
     }
     service_account = google_service_account.drive_uploader.email
   }
