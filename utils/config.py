@@ -17,12 +17,17 @@ class Config:
         self.HEPI_FF_SUBMIT_FORM = (
             os.getenv("HEPI_FF_SUBMIT_FORM", "False").lower() == "true"
         )
+        self.HEPI_FF_UPLOAD_TO_DRIVE = (
+            os.getenv("HEPI_FF_UPLOAD_TO_DRIVE", "False").lower() == "true"
+        )
+        self.HEPI_FF_SAVE_FILE_LOCALLY = (
+            os.getenv("HEPI_FF_SAVE_FILE_LOCALLY", "False").lower() == "true"
+        )
 
         # Other
         self.DEBUG = os.getenv("DEBUG", "False").lower() == "true"
         self.PORT = int(os.getenv("PORT", 8000))
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
-        self.API_KEY = os.getenv("HEPI_API_KEY")
         self.TALLY_SIGNING_SECRET = os.getenv("HEPI_TALLY_SIGNING_SECRET")
 
 

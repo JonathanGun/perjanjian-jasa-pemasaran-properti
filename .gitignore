@@ -36,6 +36,7 @@ ENV/
 # Logs and databases
 *.log
 *.sqlite
+logs/
 
 # FastAPI-specific (if using hot-reload)
 .pytest_cache/

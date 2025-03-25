@@ -17,14 +17,6 @@ google_drive_client = GoogleDriveClient()
 pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
 
-# Dependency to verify the API key
-async def verify_api_key(api_key: str = Header(None, alias="x-api-key")):
-    if api_key is None or api_key != config.API_KEY:
-        logger.error("Invalid API key")
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    return True
-
-
 # Function to verify the Tally signature
 def verify_tally_signature(payload: bytes, received_signature: str) -> bool:
     """
@@ -42,6 +34,7 @@ def verify_tally_signature(payload: bytes, received_signature: str) -> bool:
 async def verify_webhook(
     request: Request, tally_signature: str = Header(None, alias="tally-signature")
 ):
+    logger.debug(f"Received Tally signature: {tally_signature}")
     payload = await request.body()
     if tally_signature is None or not verify_tally_signature(payload, tally_signature):
         raise HTTPException(status_code=401, detail="Invalid signature")
@@ -53,7 +46,6 @@ async def verify_webhook(
 async def submit(
     data: DataPerjanjianPemasaranProperti,
     _: bool = Depends(verify_webhook),
-    __: bool = Depends(verify_api_key),
 ):
     if not config.HEPI_FF_SUBMIT_FORM:
         logger.warning("Submit feature is disabled")
@@ -63,22 +55,34 @@ async def submit(
 
     try:
         # Generate and upload the PDF
-        logger.info(f"Generating PDF for user: {data.name}")
+        logger.info(f"Generating PDF for user: {data.owner_name}")
         pdf_stream = pdf_generator.generate(data)
 
         filename = f"{data.data.responseId}.pdf"
-        logger.info(f"Uploading PDF to Google Drive: {filename}")
-        file_id = google_drive_client.upload(
-            pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID
-        )
+        if config.HEPI_FF_UPLOAD_TO_DRIVE:
+            logger.info(f"Uploading PDF to Google Drive: {filename}")
+            file_id = google_drive_client.upload(
+                pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID
+            )
 
-        # Share the file with the user's email
-        if data.user_email:
-            logger.info(f"Sharing PDF with email: {data.user_email}")
-            google_drive_client.share(file_id, data.user_email)
+            # Share the file with the user's email
+            if data.owner_email:
+                logger.info(f"Sharing PDF with email: {data.owner_email}")
+                google_drive_client.share(file_id, data.owner_email)
 
-        logger.info(f"PDF uploaded and shared successfully: {file_id}")
-        return {"message": "PDF uploaded and shared", "file_id": file_id}
+            logger.info(f"PDF uploaded and shared successfully: {file_id}")
+            return {"message": "PDF uploaded and shared", "file_id": file_id}
+
+        if config.HEPI_FF_SAVE_FILE_LOCALLY:
+            logger.info(f"Saving PDF locally: {filename}")
+            with open(f"logs/{filename}", "wb") as f:
+                f.write(pdf_stream.read())
+            logger.info(f"PDF saved locally: {filename}")
+            return {"message": "PDF saved locally", "filename": filename}
+
+        logger.warning("No action taken for the PDF")
+        return {"message": "No action taken for the PDF"}
+
     except Exception as e:
         logger.error(f"Error in /submit/ endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
