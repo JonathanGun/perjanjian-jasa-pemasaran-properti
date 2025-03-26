@@ -112,7 +112,7 @@ async def verify_webhook(
 @check_feature_enabled("HEPI_FF_SUBMIT_FORM")
 async def submit(
     data: DataPerjanjianPemasaranProperti,
-    # _: bool = Depends(verify_webhook),
+    _: bool = Depends(verify_webhook),
 ):
     logger.debug(f"Received data: {data}")
 
