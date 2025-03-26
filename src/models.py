@@ -2,7 +2,7 @@ import abc
 from dataclasses import dataclass
 from functools import cached_property
 import uuid
-from fastapi import requests
+import requests
 from pydantic import BaseModel, EmailStr, Field, StringConstraints, field_validator
 from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional, Union
@@ -54,7 +54,9 @@ class Media(BaseModel):
     size: int
 
     def download(self) -> bytes:
-        return requests.get(self.url).content
+        response = requests.get(self.url)
+        response.raise_for_status()
+        return response.content
 
 
 class MediaFields(BaseField):

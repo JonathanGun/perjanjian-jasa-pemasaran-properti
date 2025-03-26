@@ -195,7 +195,7 @@ class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
             x=self.margin + 300,
             font_size=self.header_font_size,
         )
-        self.current_y += 60
+        self._draw_image(page, data.signature_file, x=self.margin, width=200)
         self._draw_text(page, data.owner_name, x=self.margin)
         self.current_y += 30
         self._draw_text(
@@ -286,6 +286,38 @@ class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
         )
         self.current_y = max(left_y, right_y)
         self.current_y += self.line_height
+
+    def _draw_image(self, page, image: bytes, x=None, y=None, width=None, height=None):
+        """Draw an image on the PDF page.
+
+        Args:
+            page: The PDF page to draw on
+            image: Image bytes data
+            x: X position (defaults to current margin)
+            y: Y position (defaults to current_y)
+            width: Desired width of image (maintains aspect ratio if height is None)
+            height: Desired height of image
+        """
+        if x is None:
+            x = self.margin
+        if y is None:
+            y = self.current_y
+
+        # Create a Pixmap from the image bytes
+        img = pymupdf.Pixmap(image)
+
+        # Calculate dimensions if only one is specified
+        if width is not None and height is None:
+            height = width * img.height / img.width
+        elif height is not None and width is None:
+            width = height * img.width / img.height
+
+        # Insert the image
+        rect = pymupdf.Rect(x, y, x + (width or img.width), y + (height or img.height))
+        page.insert_image(rect, pixmap=img)
+
+        # Update current_y position
+        self.current_y = rect.y1 + 10  # Add small padding
 
 
 def rupiah_format(value: int):
