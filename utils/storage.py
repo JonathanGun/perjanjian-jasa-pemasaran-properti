@@ -1,6 +1,7 @@
 import abc
 import enum
 import io
+from typing import Dict, Optional
 from google.auth import default
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
@@ -15,19 +16,21 @@ class FileRole(enum.Enum):
 
 class StorageClient(abc.ABC):
     @abc.abstractmethod
-    def upload(self, file_stream, filename, folder_id=None) -> str:
+    def upload(
+        self, file_stream: io.BytesIO, filename: str, folder_id: Optional[str] = None
+    ) -> str:
         pass
 
     @abc.abstractmethod
-    def share(self, file_id, email, role=FileRole.READER):
+    def share(self, file_id: str, email: str, role: FileRole = FileRole.READER) -> None:
         pass
 
     @abc.abstractmethod
-    def download(self, file_id) -> io.BytesIO:
+    def download(self, file_id: str) -> io.BytesIO:
         pass
 
     @abc.abstractmethod
-    def get_file_url(self, file_id):
+    def get_file_url(self, file_id: str) -> str:
         pass
 
 
@@ -45,7 +48,13 @@ class GoogleDriveClient(StorageClient):
             raise ValueError("No valid credentials found")
         return build("drive", "v3", credentials=creds)
 
-    def upload(self, file_stream, filename, folder_id=None):
+    def upload(
+        self,
+        file_stream,
+        filename,
+        folder_id=None,
+        custom_property=None,
+    ):
         """Upload a file to Google Drive."""
         file_metadata = {"name": filename}
         if folder_id:
@@ -56,7 +65,18 @@ class GoogleDriveClient(StorageClient):
             .create(body=file_metadata, media_body=media, fields="id")
             .execute()
         )
-        return file.get("id")
+        file_id = file.get("id")
+        if custom_property:
+            self._set_custom_property(file_id, custom_property)
+        return file_id
+
+    def _set_custom_property(self, file_id: str, properties: Dict[str, str]):
+        """Set custom properties for a file."""
+        self.service.files().update(
+            fileId=file_id,
+            body={"properties": properties},
+            fields="id,properties",
+        ).execute()
 
     def share(self, file_id, email, role=FileRole.READER):
         """Share a file with a specific email."""
@@ -74,20 +94,20 @@ class GoogleDriveClient(StorageClient):
             fields="id",
         ).execute()
 
-    def _get_file_by_name(self, filename):
-        """Get a file ID by its name."""
-        query = f"name='{filename}'"
+    def _get_file_by_response_id(self, response_id: str):
+        """Get a file ID by its response_id."""
+        query = f"properties has {{ key='response_id' and value='{response_id}' }}"
         results = self.service.files().list(q=query, fields="files(id, name)").execute()
         files = results.get("files", [])
         if files:
             return files[0]  # Return the first match
         return None
 
-    def get_file_url(self, filename):
+    def get_file_url(self, response_id):
         """Generate a sharable link for the file."""
-        file_info = self._get_file_by_name(filename)
+        file_info = self._get_file_by_response_id(response_id)
         if not file_info:
-            raise FileNotFoundError(f"File not found: {filename}")
+            raise FileNotFoundError(f"File not found: {response_id}")
 
         file = (
             self.service.files()
@@ -96,11 +116,11 @@ class GoogleDriveClient(StorageClient):
         )
         return file.get("webViewLink")
 
-    def download(self, filename):
+    def download(self, response_id):
         """Download a file by its ID."""
-        file_info = self._get_file_by_name(filename)
+        file_info = self._get_file_by_response_id(response_id)
         if not file_info:
-            raise FileNotFoundError(f"File not found: {filename}")
+            raise FileNotFoundError(f"File not found: {response_id}")
 
         request = self.service.files().get_media(fileId=file_info["id"])
         file_stream = io.BytesIO()
@@ -110,3 +130,21 @@ class GoogleDriveClient(StorageClient):
             status, done = downloader.next_chunk()
         file_stream.seek(0)
         return file_stream
+
+
+class LocalStorageClient(StorageClient):
+    DIRECTORY = "logs"
+
+    def upload(self, file_stream, filename, folder_id=None, properties=None) -> str:
+        with open(f"{self.DIRECTORY}/{filename}", "wb") as f:
+            f.write(file_stream.read())
+        return filename
+
+    def share(self, file_id, email, role=FileRole.READER):
+        pass
+
+    def download(self, response_id):
+        return open(f"{self.DIRECTORY}/{response_id}.pdf", "rb")
+
+    def get_file_url(self, response_id):
+        pass
