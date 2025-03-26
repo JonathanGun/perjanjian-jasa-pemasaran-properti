@@ -121,14 +121,7 @@ async def submit(
     pdf_stream = pdf_generator.generate(data)
 
     filename = data.get_filename()
-    properties = {
-        **data.get_form_values(),
-        "created_at": data.createdAt,
-        "response_id": data.data.responseId,
-        "submission_id": data.data.submissionId,
-        "respondent_id": data.data.respondentId,
-        "filename": filename,
-    }
+    properties = data.get_form_properties()
     logger.info(f"PDF generated successfully: {filename}")
     logger.debug(f"PDF properties: {properties}")
 

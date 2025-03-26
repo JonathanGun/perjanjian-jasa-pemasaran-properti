@@ -343,7 +343,7 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
 
     @cached_property
     def additional_notes(self) -> Optional[str]:
-        return self._fields_dict.get("additional_notes")
+        return self._fields_dict.get("additional_notes").get_value()
 
     @cached_property
     def agreement_online_marketing(self) -> Optional[bool]:
@@ -369,47 +369,18 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         property_address_trimmed = self.property_address.split(",")[0][:72]
         return f"Listing - {self.transaction_type} {self.property_type} {property_address_trimmed}.pdf"
 
-    def get_form_values(self) -> Dict[str, str]:
+    def get_form_properties(self) -> Dict[str, str]:
         return {
             "owner_name": self.owner_name,
-            "owner_address": self.owner_address,
-            "owner_ktp_num": self.owner_ktp_num,
-            "owner_phone_num": self.owner_phone_num,
             "owner_email": self.owner_email,
-            "cp_is_owner": self.cp_is_owner,
             "cp_name": self.cp_name,
-            "cp_address": self.cp_address,
-            "cp_ktp_num": self.cp_ktp_num,
-            "cp_phone_num": self.cp_phone_num,
             "cp_email": self.cp_email,
             "transaction_type": self.transaction_type,
             "property_type": self.property_type,
             "property_address": self.property_address,
-            "property_land_area": self.property_land_area,
-            "property_building_area": self.property_building_area,
-            "property_floor_count": self.property_floor_count,
-            "property_bedroom": self.property_bedroom,
-            "property_helper_bedroom": self.property_helper_bedroom,
-            "property_bathroom": self.property_bathroom,
-            "property_helper_bathroom": self.property_helper_bathroom,
-            "property_garage": self.property_garage,
-            "property_facing_to": self.property_facing_to,
-            "property_condition": self.property_condition,
-            "property_certificate_status": self.property_certificate_status,
-            "property_wattage": self.property_wattage,
-            "property_water_type": self.property_water_type,
-            "property_air_cond_count": self.property_air_cond_count,
-            "property_phone_line_count": self.property_phone_line_count,
-            "property_furniture_completion": self.property_furniture_completion,
-            "property_certificate_url": self.property_certificate_url,
-            "owner_ktp_url": self.owner_ktp_url,
-            "property_pbb_url": self.property_pbb_url,
-            "property_imb_url": self.property_imb_url,
-            "price": self.price,
-            "rent_payment_frequency": self.rent_payment_frequency,
-            "additional_notes": self.additional_notes,
-            "agreement_online_marketing": self.agreement_online_marketing,
-            "agreement_offline_marketing": self.agreement_offline_marketing,
-            "success_fee": self.success_fee,
-            "signature_url": self.signature_url,
+            "created_at": self.createdAt.isoformat(),
+            "response_id": self.data.responseId,
+            "submission_id": self.data.submissionId,
+            "respondent_id": self.data.respondentId,
+            "filename": self.get_filename(),
         }
