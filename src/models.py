@@ -268,16 +268,16 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("property_garage").get_value()
 
     @cached_property
-    def property_facing_to(self) -> Optional[List[str]]:
-        return self._fields_dict.get("property_facing_to").get_value()
+    def property_facing_to(self) -> Optional[str]:
+        return self._fields_dict.get("property_facing_to").get_first_value()
 
     @cached_property
     def property_condition(self) -> Optional[str]:
         return self._fields_dict.get("property_condition").get_value()
 
     @cached_property
-    def property_certificate_status(self) -> Optional[List[str]]:
-        return self._fields_dict.get("property_certificate_status").get_value()
+    def property_certificate_status(self) -> Optional[str]:
+        return self._fields_dict.get("property_certificate_status").get_first_value()
 
     @cached_property
     def property_wattage(self) -> Optional[List[str]]:
@@ -296,8 +296,8 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("property_phone_line_count").get_value()
 
     @cached_property
-    def property_furniture_completion(self) -> Optional[List[str]]:
-        return self._fields_dict.get("property_furniture_completion").get_value()
+    def property_furniture_completion(self) -> Optional[str]:
+        return self._fields_dict.get("property_furniture_completion").get_first_value()
 
     @cached_property
     def property_certificate_url(self) -> Optional[str]:
@@ -332,12 +332,8 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("property_imb_file").download_first()
 
     @cached_property
-    def sell_price(self) -> Optional[int]:
-        return self._fields_dict.get("sell_price").get_value()
-
-    @cached_property
-    def rent_price(self) -> Optional[int]:
-        return self._fields_dict.get("rent_price").get_value()
+    def price(self) -> Optional[int]:
+        return self._fields_dict.get("price").get_value()
 
     @cached_property
     def rent_payment_frequency(self) -> Optional[int]:
@@ -356,12 +352,8 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("agreement_offline_marketing").is_checked()
 
     @cached_property
-    def success_fee_sell(self) -> Optional[int]:
-        return self._fields_dict.get("success_fee_sell").get_value()
-
-    @cached_property
-    def success_fee_rent(self) -> Optional[int]:
-        return self._fields_dict.get("success_fee_rent").get_value()
+    def success_fee(self) -> Optional[int]:
+        return self._fields_dict.get("success_fee").get_value()
 
     @cached_property
     def signature_url(self) -> Optional[str]:
@@ -411,13 +403,11 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
             "owner_ktp_url": self.owner_ktp_url,
             "property_pbb_url": self.property_pbb_url,
             "property_imb_url": self.property_imb_url,
-            "sell_price": self.sell_price,
-            "rent_price": self.rent_price,
+            "price": self.price,
             "rent_payment_frequency": self.rent_payment_frequency,
             "additional_notes": self.additional_notes,
             "agreement_online_marketing": self.agreement_online_marketing,
             "agreement_offline_marketing": self.agreement_offline_marketing,
-            "success_fee_sell": self.success_fee_sell,
-            "success_fee_rent": self.success_fee_rent,
+            "success_fee": self.success_fee,
             "signature_url": self.signature_url,
         }
