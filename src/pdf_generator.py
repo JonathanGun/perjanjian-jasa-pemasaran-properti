@@ -9,7 +9,7 @@ class PDFGenerator(abc.ABC):
         self.config = config
 
     @abc.abstractmethod
-    def generate(self) -> pymupdf.Document:
+    def generate(self, *args, **kwargs) -> io.BytesIO:
         pass
 
 
@@ -41,7 +41,15 @@ class DummyPDFGenerator(PDFGenerator):
         return pdf_stream
 
 
-class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
+class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator, abc.ABC):
+    @abc.abstractmethod
+    def generate(self, data: DataPerjanjianPemasaranProperti) -> io.BytesIO:
+        pass
+
+
+class PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator(
+    PerjanjianJasaPemasaranPropertiPDFGenerator
+):
     def __init__(self, config):
         self.config = config
         self.font_size = 10
@@ -178,10 +186,10 @@ class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
         for term in terms:
             if term.startswith("-"):
                 self._draw_multiline_text(
-                    page, term, x=self.margin + 20, char_per_line=100
+                    page, term, x=self.margin + 10, char_per_line=100
                 )
             else:
-                self._draw_multiline_text(page, term, char_per_line=100)
+                self._draw_multiline_text(page, term, char_per_line=110)
             self.current_y += self.line_height
 
         # Signatures
@@ -227,7 +235,7 @@ class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
         self._draw_text(page, f"{label}: {value}")
         self.current_y += self.line_height
 
-    def _draw_text(self, page, text, x=None, font_size=None):
+    def _draw_text(self, page, text, x=None, font_size=None, default_empty="-"):
         if x is None:
             x = self.margin
         if font_size is None:
@@ -235,7 +243,7 @@ class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator):
 
         page.insert_text(
             point=(x, self.current_y),
-            text=str(text),
+            text=str(text or default_empty),
             fontsize=font_size,
             fontname="helv",
             color=(0, 0, 0),
@@ -326,3 +334,10 @@ def rupiah_format(value: int):
 
 def checkbox(is_checked: bool) -> str:
     return "[v]" if is_checked else "[ ]"
+
+
+class HTMLPerjanjianJasaPemasaranPropertiPDFGenerator(
+    PerjanjianJasaPemasaranPropertiPDFGenerator
+):
+    def generate(self, data: DataPerjanjianPemasaranProperti) -> io.BytesIO:
+        pass

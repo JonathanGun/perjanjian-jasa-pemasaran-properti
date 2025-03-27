@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from utils.logger import logger
 from utils.config import config
 from utils.storage import GoogleDriveClient, LocalStorageClient
-from src.pdf_generator import PerjanjianJasaPemasaranPropertiPDFGenerator
+from src.pdf_generator import PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator
 from src.models import DataPerjanjianPemasaranProperti
 from functools import wraps
 
@@ -16,7 +16,7 @@ app = FastAPI()
 # Initialize Google Drive client and PDF generator
 google_drive_client = GoogleDriveClient()
 local_storage_client = LocalStorageClient()
-pdf_generator = PerjanjianJasaPemasaranPropertiPDFGenerator(config)
+pdf_generator = PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
 
 # Custom exceptions
