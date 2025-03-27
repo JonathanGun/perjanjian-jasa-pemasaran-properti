@@ -335,16 +335,13 @@ Rp {{ "{:,}".format(value).replace(",", ".") }}
 
     <table class="checkbox-table">
         <tr>
-            <td>
-                <span class="checkbox">☐</span>
-                <span>Pihak marketing dapat mempromosikan properti tersebut melalui media massa baik cetak, elektronik,
-                    maupun online</span>
+            <td>{{ checkbox(agreement_online_marketing) }}<span>Pihak marketing dapat memasarkan properti
+                    tersebut secara online melalui website dan media sosial</span>
             </td>
         </tr>
         <tr>
-            <td><span class="checkbox">☐</span>
-                <span>Pihak marketing dapat memasang tanda (spanduk/papan) dijual atau disewa pada properti
-                    tersebut</span>
+            <td>{{ checkbox(agreement_offline_marketing) }}<span>Pihak marketing dapat memasang tanda (spanduk/papan)
+                    dijual atau disewa pada properti tersebut</span>
             </td>
         </tr>
     </table>
