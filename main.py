@@ -1,38 +1,27 @@
 import base64
 import hmac
 import hashlib
+import time
 from fastapi import Depends, FastAPI, Header, Request, Response
 from fastapi.responses import JSONResponse
-from utils.logger import logger
-from utils.config import config
-from utils.storage import GoogleDriveClient, LocalStorageClient
-from src.pdf_generator import PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator
+from src.pdf_generator import PDFGenerator
+from src.utils.logger import logger
+from src.utils.config import config
+from src.utils.dependencies import get_pdf_generator, get_storage_client
+from src.utils.storage import GoogleDriveClient, LocalStorageClient, StorageClient
+from src.utils.exceptions import (
+    FeatureDisabledError,
+    FileNotFoundError,
+    InvalidSignatureError,
+    PDFGenerationError,
+)
 from src.models import DataPerjanjianPemasaranProperti
 from functools import wraps
 
-# Initialize FastAPI app
+
 app = FastAPI()
 
-# Initialize Google Drive client and PDF generator
-google_drive_client = GoogleDriveClient()
-local_storage_client = LocalStorageClient()
-pdf_generator = PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator(config)
 
-
-# Custom exceptions
-class FeatureDisabledError(Exception):
-    pass
-
-
-class FileNotFoundError(Exception):
-    pass
-
-
-class InvalidSignatureError(Exception):
-    pass
-
-
-# Exception handlers
 @app.exception_handler(FeatureDisabledError)
 async def feature_disabled_handler(request: Request, exc: FeatureDisabledError):
     logger.warning(f"Feature disabled: {str(exc)}")
@@ -69,6 +58,27 @@ async def generic_exception_handler(request: Request, exc: Exception):
     )
 
 
+@app.exception_handler(PDFGenerationError)
+async def pdf_generation_handler(request: Request, exc: PDFGenerationError):
+    logger.error(f"PDF generation failed: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"message": "Failed to generate PDF"},
+    )
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start_time = time.time()
+    logger.info(f"Request started, path={request.url.path}, method={request.method}")
+    response = await call_next(request)
+    process_time = time.time() - start_time
+    logger.info(
+        f"Request completed, path={request.url.path}, status_code={response.status_code}, process_time={process_time:.2f}s"
+    )
+    return response
+
+
 # Decorators
 def check_feature_enabled(feature_flag: str):
     def decorator(func):
@@ -100,6 +110,10 @@ def verify_tally_signature(payload: bytes, received_signature: str) -> bool:
 async def verify_webhook(
     request: Request, tally_signature: str = Header(None, alias="tally-signature")
 ):
+    if config.ENVIRONMENT in ["development", "test", "local"]:
+        logger.debug("Skipping signature verification in development/test/local")
+        return True
+
     logger.debug(f"Received Tally signature: {tally_signature}")
     payload = await request.body()
     if tally_signature is None or not verify_tally_signature(payload, tally_signature):
@@ -107,11 +121,27 @@ async def verify_webhook(
     return True
 
 
+@app.get("/health")
+async def health():
+    return {"status": "healthy"}
+
+
 # Endpoint to generate, upload, and share a PDF
-@app.post("/submit/")
+@app.post(
+    "/submit/",
+    summary="Generate property marketing agreement PDF",
+    response_description="PDF generation result",
+    responses={
+        200: {"description": "PDF generated successfully"},
+        403: {"description": "Feature disabled"},
+        500: {"description": "PDF generation failed"},
+    },
+)
 @check_feature_enabled("HEPI_FF_SUBMIT_FORM")
 async def submit(
     data: DataPerjanjianPemasaranProperti,
+    pdf_generator: PDFGenerator = Depends(get_pdf_generator),
+    storage_client: StorageClient = Depends(get_storage_client),
     _: bool = Depends(verify_webhook),
 ):
     logger.debug(f"Received data: {data}")
@@ -125,35 +155,27 @@ async def submit(
     logger.info(f"PDF generated successfully: {filename}")
     logger.debug(f"PDF properties: {properties}")
 
-    if config.HEPI_FF_UPLOAD_TO_DRIVE:
-        logger.info(f"Uploading PDF to Google Drive: {filename}")
-        file_id = google_drive_client.upload(
-            pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID, properties
-        )
+    logger.info(f"Uploading PDF: {filename}")
+    file_id = storage_client.upload(
+        pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID, properties
+    )
 
-        # Share the file with the user's email
-        if data.owner_email:
-            logger.info(f"Sharing PDF with email: {data.owner_email}")
-            google_drive_client.share(file_id, data.owner_email)
+    if data.owner_email:
+        logger.info(f"Sharing PDF with email: {data.owner_email}")
+        storage_client.share(file_id, data.owner_email)
 
-        logger.info(f"PDF uploaded and shared successfully: {file_id}")
-        return {"message": "PDF uploaded and shared", "file_id": file_id}
-
-    if config.HEPI_FF_SAVE_FILE_LOCALLY:
-        filename = data.data.responseId + ".pdf"
-        logger.info(f"Saving PDF locally: {filename}")
-        local_storage_client.upload(pdf_stream, filename)
-        return {"message": "PDF saved locally", "filename": filename}
-
-    logger.warning("No action taken for the PDF")
-    return {"message": "No action taken for the PDF"}
+    logger.info(f"PDF uploaded and shared successfully: {file_id}")
+    return {"message": "PDF uploaded and shared", "file_id": file_id}
 
 
 @app.get("/pdf/{response_id}")
 @check_feature_enabled("HEPI_FF_DOWNLOAD_PDF")
-async def get_pdf(response_id: str):
+async def get_pdf(
+    response_id: str,
+    storage_client: StorageClient = Depends(get_storage_client),
+):
     logger.info(f"Fetching file by response_id: {response_id}")
-    file_url = google_drive_client.get_file_url(response_id)
+    file_url = storage_client.get_file_url(response_id)
 
     # Redirect to the file URL
     logger.info(f"Redirecting to sharable link: {file_url}")

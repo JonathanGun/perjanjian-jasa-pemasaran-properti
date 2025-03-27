@@ -3,7 +3,14 @@ from dataclasses import dataclass
 from functools import cached_property
 import uuid
 import requests
-from pydantic import BaseModel, EmailStr, Field, StringConstraints, field_validator
+from pydantic import (
+    BaseModel,
+    EmailStr,
+    Field,
+    StringConstraints,
+    computed_field,
+    field_validator,
+)
 from datetime import datetime
 from typing import Annotated, Any, Dict, List, Optional, Union
 
@@ -169,132 +176,182 @@ class TallyWebhookEvent(BaseModel):
 
 
 class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
+    @computed_field
+    @cached_property
+    def agent_name(self) -> Optional[str]:
+        return self._fields_dict.get("agent_name").get_value()
+
+    @computed_field
+    @cached_property
+    def agent_phone_num(self) -> Optional[str]:
+        return self._fields_dict.get("agent_phone_num").get_value()
+
+    @computed_field
     @cached_property
     def owner_name(self) -> Optional[str]:
         return self._fields_dict.get("owner_name").get_value()
 
+    @computed_field
     @cached_property
     def owner_address(self) -> Optional[str]:
         return self._fields_dict.get("owner_address").get_value()
 
+    @computed_field
     @cached_property
     def owner_ktp_num(self) -> Optional[str]:
         return self._fields_dict.get("owner_ktp_num").get_value()
 
+    @computed_field
     @cached_property
     def owner_phone_num(self) -> Optional[str]:
         return self._fields_dict.get("owner_phone_num").get_value()
 
+    @computed_field
     @cached_property
     def owner_email(self) -> Optional[str]:
         return self._fields_dict.get("owner_email").get_value()
 
+    @computed_field
     @cached_property
     def cp_is_owner(self) -> Optional[bool]:
         return self._fields_dict.get("cp_is_owner").is_checked()
 
+    @computed_field
     @cached_property
     def cp_name(self) -> Optional[str]:
         if self.cp_is_owner:
             return self.owner_name
         return self._fields_dict.get("cp_name").get_value()
 
+    @computed_field
     @cached_property
     def cp_address(self) -> Optional[str]:
         if self.cp_is_owner:
             return self.owner_address
         return self._fields_dict.get("cp_address").get_value()
 
+    @computed_field
     @cached_property
     def cp_ktp_num(self) -> Optional[str]:
         if self.cp_is_owner:
             return self.owner_ktp_num
         return self._fields_dict.get("cp_ktp_num").get_value()
 
+    @computed_field
     @cached_property
     def cp_phone_num(self) -> Optional[str]:
         if self.cp_is_owner:
             return self.owner_phone_num
         return self._fields_dict.get("cp_phone_num").get_value()
 
+    @computed_field
     @cached_property
     def cp_email(self) -> Optional[str]:
         if self.cp_is_owner:
             return self.owner_email
         return self._fields_dict.get("cp_email").get_value()
 
+    @computed_field
+    @cached_property
+    def cp_relation_with_owner(self) -> Optional[str]:
+        return self._fields_dict.get("cp_relation_with_owner").get_value()
+
+    @computed_field
     @cached_property
     def transaction_type(self) -> Optional[str]:
         return self._fields_dict.get("transaction_type").get_first_value()
 
+    @computed_field
     @cached_property
     def property_type(self) -> Optional[str]:
         return self._fields_dict.get("property_type").get_first_value()
 
+    @computed_field
     @cached_property
     def property_address(self) -> Optional[str]:
         return self._fields_dict.get("property_address").get_value()
 
+    @computed_field
     @cached_property
     def property_land_area(self) -> Optional[int]:
         return self._fields_dict.get("property_land_area").get_value()
 
+    @computed_field
     @cached_property
     def property_building_area(self) -> Optional[int]:
         return self._fields_dict.get("property_building_area").get_value()
 
+    @computed_field
+    @cached_property
+    def property_facade_width(self) -> Optional[int]:
+        return self._fields_dict.get("property_facade_width").get_value()
+
+    @computed_field
+    @cached_property
+    def property_road_width(self) -> Optional[int]:
+        return self._fields_dict.get("property_road_width").get_value()
+
+    @computed_field
     @cached_property
     def property_floor_count(self) -> Optional[int]:
         return self._fields_dict.get("property_floor_count").get_value()
 
+    @computed_field
     @cached_property
     def property_bedroom(self) -> Optional[int]:
         return self._fields_dict.get("property_bedroom").get_value()
 
+    @computed_field
     @cached_property
     def property_helper_bedroom(self) -> Optional[int]:
         return self._fields_dict.get("property_helper_bedroom").get_value()
 
+    @computed_field
     @cached_property
     def property_bathroom(self) -> Optional[int]:
         return self._fields_dict.get("property_bathroom").get_value()
 
+    @computed_field
     @cached_property
     def property_helper_bathroom(self) -> Optional[int]:
         return self._fields_dict.get("property_helper_bathroom").get_value()
 
+    @computed_field
     @cached_property
     def property_garage(self) -> Optional[int]:
         return self._fields_dict.get("property_garage").get_value()
 
+    @computed_field
     @cached_property
     def property_facing_to(self) -> Optional[str]:
         return self._fields_dict.get("property_facing_to").get_first_value()
 
+    @computed_field
     @cached_property
     def property_condition(self) -> Optional[str]:
         return self._fields_dict.get("property_condition").get_value()
 
+    @computed_field
     @cached_property
     def property_certificate_status(self) -> Optional[str]:
         return self._fields_dict.get("property_certificate_status").get_first_value()
 
+    @computed_field
     @cached_property
-    def property_wattage(self) -> Optional[List[str]]:
+    def property_wattage(self) -> Optional[str]:
         return self._fields_dict.get("property_wattage").get_first_value()
 
+    @computed_field
     @cached_property
-    def property_water_type(self) -> Optional[List[str]]:
+    def property_water_type(self) -> Optional[str]:
         return self._fields_dict.get("property_water_type").get_first_value()
 
+    @computed_field
     @cached_property
     def property_air_cond_count(self) -> Optional[int]:
         return self._fields_dict.get("property_air_cond_count").get_value()
 
-    @cached_property
-    def property_phone_line_count(self) -> Optional[int]:
-        return self._fields_dict.get("property_phone_line_count").get_value()
-
+    @computed_field
     @cached_property
     def property_furniture_completion(self) -> Optional[str]:
         return self._fields_dict.get("property_furniture_completion").get_first_value()
@@ -307,6 +364,7 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     def property_certificate_file(self) -> Optional[bytes]:
         return self._fields_dict.get("property_certificate_file").download_first()
 
+    @computed_field
     @cached_property
     def owner_ktp_url(self) -> Optional[str]:
         return self._fields_dict.get("owner_ktp_file").get_first_url()
@@ -315,6 +373,7 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     def owner_ktp_file(self) -> Optional[bytes]:
         return self._fields_dict.get("owner_ktp_file").download_first()
 
+    @computed_field
     @cached_property
     def property_pbb_url(self) -> Optional[str]:
         return self._fields_dict.get("property_pbb_file").get_first_url()
@@ -323,6 +382,7 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     def property_pbb_file(self) -> Optional[bytes]:
         return self._fields_dict.get("property_pbb_file").download_first()
 
+    @computed_field
     @cached_property
     def property_imb_url(self) -> Optional[str]:
         return self._fields_dict.get("property_imb_file").get_first_url()
@@ -331,30 +391,37 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     def property_imb_file(self) -> Optional[bytes]:
         return self._fields_dict.get("property_imb_file").download_first()
 
+    @computed_field
     @cached_property
     def price(self) -> Optional[int]:
         return self._fields_dict.get("price").get_value()
 
+    @computed_field
     @cached_property
     def rent_payment_frequency(self) -> Optional[int]:
         return self._fields_dict.get("rent_payment_frequency").get_value()
 
+    @computed_field
     @cached_property
     def additional_notes(self) -> Optional[str]:
         return self._fields_dict.get("additional_notes").get_value()
 
+    @computed_field
     @cached_property
     def agreement_online_marketing(self) -> Optional[bool]:
         return self._fields_dict.get("agreement_online_marketing").is_checked()
 
+    @computed_field
     @cached_property
     def agreement_offline_marketing(self) -> Optional[bool]:
         return self._fields_dict.get("agreement_offline_marketing").is_checked()
 
+    @computed_field
     @cached_property
     def success_fee(self) -> Optional[int]:
         return self._fields_dict.get("success_fee").get_value()
 
+    @computed_field
     @cached_property
     def signature_url(self) -> Optional[str]:
         return self._fields_dict.get("signature").get_first_url()
@@ -369,6 +436,7 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
 
     def get_form_properties(self) -> Dict[str, str]:
         return {
+            "agent_name": self.agent_name,
             "owner_name": self.owner_name,
             "owner_email": self.owner_email,
             "cp_name": self.cp_name,

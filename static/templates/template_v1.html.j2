@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Perjanjian Jasa Pemasaran Properti antara {{ owner_name }}, {{ agent_name}}, dan Hepi Property">
+    <meta name="keywords" content="perjanjian, properti, pemasaran, sewa, jual">
+    <meta name="author" content="Hepi Property">
+    <title>Perjanjian Jasa Pemasaran Properti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 15px 60px;
+            background: white;
+        }
+
+        .logo {
+            display: block;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0px;
+        }
+
+        body>table {
+            margin-bottom: 10px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #000;
+        }
+
+        th,
+        td {
+            padding: 1px 8px;
+            vertical-align: middle;
+        }
+
+        .break-all {
+            word-break: break-all;
+        }
+
+        th {
+            background-color: #dddddd;
+            font-size: large;
+        }
+
+        .checkbox-table {
+            width: 100%;
+            border: none;
+            border-collapse: collapse;
+        }
+
+        .checkbox-table tr {
+            display: flex;
+            flex-direction: row;
+            line-height: 0.9;
+        }
+
+        .checkbox-table th,
+        .checkbox-table td {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            flex: 1;
+            border: none;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .checkbox-table span.checkbox {
+            font-family: Arial;
+            font-size: x-large;
+            vertical-align: middle;
+        }
+
+        /* Signature */
+        .signature-table {
+            width: 100%;
+            table-layout: fixed;
+            margin-top: 20px;
+            text-align: center;
+            border: none;
+        }
+
+        .signature-table th,
+        .signature-table td {
+            border: none;
+            padding: 20px;
+            vertical-align: bottom;
+        }
+
+        .signature-line {
+            display: block;
+            border-bottom: 1px solid black;
+            width: 80%;
+            margin: 100px auto 0 auto;
+        }
+
+        .footer {
+            font-size: 0.9em;
+            position: fixed;
+            /* bottom: 30px; */
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            text-align: center;
+            color: #3377dd;
+        }
+
+        .footer>* {
+            margin: 0;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+
+{% macro checkbox(condition) %}
+<span class="checkbox">
+    {{ '☑' if condition else '☐' }}
+</span>
+{% endmacro %}
+
+{% macro rupiah_format(value) %}
+{% if value %}
+Rp {{ "{:,}".format(value).replace(",", ".") }}
+{% else %}
+-
+{% endif %}
+{% endmacro %}
+
+<body>
+    <div class="logo">
+        <img src="{{ logo_image }}" alt="Hepi Property Logo" width="175">
+    </div>
+    <table>
+        <tr>
+            <th colspan="4" style="font-size: x-large;">Perjanjian Jasa Pemasaran Properti</th>
+        </tr>
+        <tr>
+            <td width="20%">Jenis Transaksi</td>
+            <td>
+                <table class="checkbox-table" style="width: 35%;">
+                    <tr>
+                        <td>{{ checkbox(transaction_type == "Jual") }}<span>Jual</span></td>
+                        <td>{{ checkbox(transaction_type == "Sewa") }}<span>Sewa</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>Jenis Properti</td>
+            <td>
+                <table class="checkbox-table">
+                    <tr>
+                        <td>{{ checkbox(property_type == "Rumah") }}<span>Rumah</span></td>
+                        <td>{{ checkbox(property_type == "Ruko") }}<span>Ruko</span></td>
+                        <td>{{ checkbox(property_type == "Tanah") }}<span>Tanah</span></td>
+                        <td>{{ checkbox(property_type == "Gudang") }}<span>Gudang</span></td>
+                        <td style="flex: 1.25;">{{ checkbox(property_type == "Apartemen") }}<span>Apartemen</span></td>
+                        <td style="flex: 1.25;">{{ checkbox(property_type == "Others") }}<span>Lainnya</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>Lokasi Listing (Alamat Lengkap)</td>
+            <td colspan="3">
+                {{ property_address or "-" }}
+            </td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th colspan="2">Pihak Pemilik</th>
+            <th colspan="2">Contact Person</th>
+        </tr>
+        <tr>
+            <td width="20%">Nama</td>
+            <td width="30%">{{ owner_name or "-" }}</td>
+            <td width="20%">Nama</td>
+            <td width="30%">{{ cp_name or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Alamat</td>
+            <td>{{ owner_address or "-" }}</td>
+            <td>Alamat</td>
+            <td>{{ cp_address or "-" }}</td>
+        </tr>
+        <tr>
+            <td>No. KTP</td>
+            <td>{{ owner_ktp_num or "-" }}</td>
+            <td>Telp/HP</td>
+            <td>
+                {% if cp_phone_num %}
+                <a href="tel:{{ cp_phone_num|replace(' ', '') }}">{{ cp_phone_num }}</a>
+                {% else%}
+                -
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>Telp/HP</td>
+            <td>
+                {% if owner_phone_num %}
+                <a href="tel:{{ owner_phone_num|replace(' ', '') }}">{{ owner_phone_num }}</a>
+                {%else%}
+                -
+                {% endif %}
+            </td>
+            <td>Email</td>
+            <td>{% if cp_email %}<a href="mailto:{{ cp_email }}">{{ cp_email }}</a>{% else %}-{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Email</td>
+            <td>{% if owner_email %}<a href="mailto:{{ owner_email }}">{{ owner_email }}</a>{% else %}-{% endif %}</td>
+            <td>Hubungan</td>
+            <td>{{ cp_relation_with_owner or "-" }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <th colspan="2">Data Properti</th>
+            <th colspan="2">Fasilitas</th>
+        </tr>
+        <tr>
+            <td width="20%">Luas Tanah</td>
+            <td width="30%">{{ property_land_area or "-" }} m<sup>2</sup></td>
+            <td width="20%">Listrik</td>
+            <td width="30%">{{ property_wattage or "-" }} Watt</td>
+        </tr>
+        <tr>
+            <td>Luas Bangunan</td>
+            <td>{{ property_building_area or "-" }} m<sup>2</sup></td>
+            <td>Air</td>
+            <td>{{ property_water_type or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Jumlah Lantai</td>
+            <td>{{ property_floor_count or "-" }}</td>
+            <td>AC</td>
+            <td>{{ property_air_cond_count or "-" }} Unit</td>
+        </tr>
+        <tr>
+            <td>Lebar Depan</td>
+            <td>{{ property_facade_width or "-" }} m</td>
+            <td>Furniture</td>
+            <td>{{ property_furniture_completion or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Lebar Jalan</td>
+            <td>{{ property_road_width or "-" }} m</td>
+            <td>Garasi / Carport</td>
+            <td>{{ property_garage or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Kamar Tidur</td>
+            <td>{{ property_bedroom or "-" }}</td>
+            <td rowspan="4">Catatan Tambahan</td>
+            <td rowspan="4">{{ additional_notes or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Jumlah Lantai</td>
+            <td>{{ property_floor_count or "-" }}</td>
+        </tr>
+        <tr>
+            <td>KT Pembantu</td>
+            <td>{{ property_helper_bedroom or "-"}}</td>
+        </tr>
+        <tr>
+            <td>Kamar Mandi</td>
+            <td>{{ property_bathroom or "-" }}</td>
+        </tr>
+        <tr>
+            <td>Hadap</td>
+            <td>{{ property_facing_to or "-" }}</td>
+            <th colspan="2">Lampiran Dokumen</th>
+        </tr>
+        <tr>
+            <td>Kondisi Bangunan</td>
+            <td>{{ property_condition or "-" }}</td>
+            <td colspan="2" rowspan="2">
+                <table class="checkbox-table lampiran-checkbox">
+                    <tr>
+                        <td>{{ checkbox(property_certificate_url) }}<span>Copy Sertifikat</span></td>
+                        <td>{{ checkbox(document_copy_ktp) }}<span>Copy KTP</span></td>
+                    </tr>
+                    <tr>
+                        <td>{{ checkbox(document_copy_pbb) }}<span>Copy PBB</span></td>
+                        <td>{{ checkbox(document_copy_imb) }}<span>Copy IMB</span></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td>Status Sertifikat</td>
+            <td>{{ property_certificate_status }}</td>
+        </tr>
+    </table>
+
+    <table>
+        <tr>
+            <td width="20%">Harga {{ transaction_type }}</td>
+            <td>
+                {{ rupiah_format(price) }}
+                {% if transaction_type == "Sewa" %}
+                per {% if rent_payment_frequency != 1 %}{{ rent_payment_frequency }} {% endif %}tahun
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <p>Dengan menandatagani perjanjian ini, pihak pemilik menjamin dan menyatakan bahwa</p>
+    <ul>
+        <li>Adalah pemilik yang sah yang berhak atas kepemilikan properti di atas</li>
+        <li>Properti yang dipasarkan tidak dalam sengketa dengan pihak manapun</li>
+        <li>Pemilik bertanggung jawab atas seluruh permasalahan sehubungan dengan kepemilikan properti, dan membebaskan
+            pihak Hepi Property dari permasalahan kepemilikan properti tersebut</li>
+    </ul>
+
+
+    <table class="checkbox-table">
+        <tr>
+            <td>
+                <span class="checkbox">☐</span>
+                <span>Pihak marketing dapat mempromosikan properti tersebut melalui media massa baik cetak, elektronik,
+                    maupun online</span>
+            </td>
+        </tr>
+        <tr>
+            <td><span class="checkbox">☐</span>
+                <span>Pihak marketing dapat memasang tanda (spanduk/papan) dijual atau disewa pada properti
+                    tersebut</span>
+            </td>
+        </tr>
+    </table>
+
+    <p>Apabila properti tersebut terjadi melalui marketing <b>Hepi Property</b>, maka pihak pemilik properti
+        berkewajiban membayar success fee kepada kami sebesar <b>{{ success_fee }} %</b> dari nilai transaksi
+        properti tersebut (demikian juga berlaku untuk perpanjangan sewa dengan penyewa yang sama)</p>
+    <p>Sebagai pemilik, informasi diatas saya berikan sesuai dengan keadaan yang sebenarnya, apabila diketahui ada
+        perbedaan informasi akan menjadi tanggung jawab saya.</p>
+
+    <table class="signature-table">
+        <tr>
+            <td>
+                <strong>Pihak Pemilik</strong>
+                <div class="signature-line"></div>
+                <p>{{ owner_name }}</p>
+            </td>
+            <td></td>
+            <td>
+                <strong>Pihak Marketing</strong>
+                <div class="signature-line"></div>
+                <p>{{ agent_name }}</p>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p>PT HIDUP ELSE PROPERTI INDONESIA</p>
+        <p>Ruko Padma Boulevard Blok AA1/28 Graha Padma, Semarang</p>
+        <div>
+            <a href="tel:6285225676801">085225676801</a> |
+            <a href="mailto:info@hepiproperty.com">info@hepiproperty.com</a> |
+            <a href="https://www.hepiproperty.com" target="_blank">www.hepiproperty.com</a>
+        </div>
+    </div>
+</body>
+
+</html>

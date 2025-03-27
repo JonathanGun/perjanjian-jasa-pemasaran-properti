@@ -23,8 +23,12 @@ class Config:
         self.HEPI_FF_SAVE_FILE_LOCALLY = (
             os.getenv("HEPI_FF_SAVE_FILE_LOCALLY", "False").lower() == "true"
         )
+        self.USE_HTML_PDF_GENERATOR = (
+            os.getenv("USE_HTML_PDF_GENERATOR", "True").lower() == "true"
+        )
 
         # Other
+        self.ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
         self.DEBUG = os.getenv("DEBUG", "False").lower() == "true"
         self.PORT = int(os.getenv("PORT", 8000))
         self.LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
