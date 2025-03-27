@@ -34,9 +34,7 @@ class HasOptions(BaseModel, abc.ABC):
 class OptionsField(BaseField, HasOptions):
     value: Optional[List[str]] = None
 
-    def get_values(self) -> Optional[List[str]]:
-        if not self.value:
-            return None
+    def get_values(self) -> List[str]:
         options = self.get_options()
         return [options[option].text for option in self.value]
 
@@ -91,7 +89,7 @@ class CheckboxField(OptionsField):
 
 class SingleCheckboxField(CheckboxField):
     def is_checked(self) -> Optional[bool]:
-        return len(self.get_values()) > 0
+        return self.get_first_value() is not None
 
 
 class CheckboxAnswerField(BaseField):

@@ -32,15 +32,22 @@ variable "pdf_generator_feature_flag_submit_form" {
   default     = false
 }
 
+variable "pdf_generator_feature_flag_upload_to_drive" {
+  description = "Feature flag for uploading to Google Drive"
+  type        = bool
+  default     = false
+}
+
+variable "pdf_generator_feature_flag_save_file_locally" {
+  description = "Feature flag for saving files locally"
+  type        = bool
+  default     = false
+}
+
 variable "pdf_generator_port" {
   description = "The port for the PDF generator service"
   type        = number
   default     = 8000
-}
-
-variable "pdf_generator_api_key" {
-  description = "The API key for the PDF generator service"
-  type        = string
 }
 
 variable "pdf_generator_tally_signing_secret" {
