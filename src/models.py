@@ -421,15 +421,6 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     def success_fee(self) -> Optional[int]:
         return self._fields_dict.get("success_fee").get_value()
 
-    @computed_field
-    @cached_property
-    def signature_url(self) -> Optional[str]:
-        return self._fields_dict.get("signature").get_first_url()
-
-    @cached_property
-    def signature_file(self) -> Optional[bytes]:
-        return self._fields_dict.get("signature").download_first()
-
     def get_filename(self) -> str:
         property_address_trimmed = self.property_address.split(",")[0][:72]
         return f"Listing - {self.transaction_type} {self.property_type} {property_address_trimmed}.pdf"
