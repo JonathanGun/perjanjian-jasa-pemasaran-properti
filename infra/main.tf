@@ -39,10 +39,6 @@ resource "google_cloud_run_v2_service" "pdf_generator_service" {
         value = var.pdf_generator_feature_flag_upload_to_drive
       }
       env {
-        name  = "HEPI_FF_SAVE_FILE_LOCALLY"
-        value = var.pdf_generator_feature_flag_save_file_locally
-      }
-      env {
         name  = "HEPI_TALLY_SIGNING_SECRET"
         value = var.pdf_generator_tally_signing_secret
       }

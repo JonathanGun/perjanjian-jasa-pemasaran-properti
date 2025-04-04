@@ -103,7 +103,7 @@
             display: block;
             border-bottom: 1px solid black;
             width: 80%;
-            margin: 100px auto 0 auto;
+            margin: auto;
         }
 
         .footer {
@@ -356,13 +356,17 @@ Rp {{ "{:,}".format(value).replace(",", ".") }}
         <tr>
             <td>
                 <strong>Pihak Pemilik</strong>
-                <div class="signature-line"></div>
+                <div class="signature-line">
+                    <img src="{{ owner_signature }}" alt="Signature Owner" width="250">
+                </div>
                 <p>{{ owner_name }}</p>
             </td>
             <td></td>
             <td>
                 <strong>Pihak Marketing</strong>
-                <div class="signature-line"></div>
+                <div class="signature-line">
+                    <img src="{{ agent_signature }}" alt="Signature Agent" width="250">
+                </div>
                 <p>{{ agent_name }}</p>
             </td>
         </tr>

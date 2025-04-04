@@ -12,12 +12,24 @@ class PDFKitPerjanjianJasaPemasaranPropertiPDFGenerator(
     PerjanjianJasaPemasaranPropertiPDFGenerator
 ):
     def generate(self, data):
-        data = data.model_dump()
+        template_data = data.model_dump()
+        owner_signature = data.owner_signature_file
+        if owner_signature:
+            owner_signature = base64.b64encode(owner_signature).decode("utf-8")
+            template_data["owner_signature"] = (
+                f"data:image/png;base64,{owner_signature}"
+            )
+        agent_signature = data.agent_signature_file
+        if agent_signature:
+            agent_signature = base64.b64encode(agent_signature).decode("utf-8")
+            template_data["agent_signature"] = (
+                f"data:image/png;base64,{agent_signature}"
+            )
         with open("static/images/logo.png", "rb") as img_file:
             logo_b64 = base64.b64encode(img_file.read()).decode("utf-8")
-            data["logo_image"] = f"data:image/png;base64,{logo_b64}"
+            template_data["logo_image"] = f"data:image/png;base64,{logo_b64}"
 
-        rendered = template.render(data)
+        rendered = template.render(template_data)
         options = {
             "page-size": "Legal",
             "margin-top": "0mm",  # Minimize margins to maximize content area

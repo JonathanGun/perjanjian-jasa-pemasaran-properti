@@ -20,9 +20,6 @@ class Config:
         self.HEPI_FF_UPLOAD_TO_DRIVE = (
             os.getenv("HEPI_FF_UPLOAD_TO_DRIVE", "False").lower() == "true"
         )
-        self.HEPI_FF_SAVE_FILE_LOCALLY = (
-            os.getenv("HEPI_FF_SAVE_FILE_LOCALLY", "False").lower() == "true"
-        )
         self.USE_HTML_PDF_GENERATOR = (
             os.getenv("USE_HTML_PDF_GENERATOR", "True").lower() == "true"
         )

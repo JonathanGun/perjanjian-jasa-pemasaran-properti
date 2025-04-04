@@ -146,6 +146,12 @@ async def submit(
 ):
     logger.debug(f"Received data: {data}")
 
+    # Check if file already exists
+    existing_file = storage_client.get_file_url(data.data.responseId)
+    if existing_file:
+        logger.info(f"File already exists: {existing_file}")
+        return {"message": "File already exists", "file_url": existing_file}
+
     # Generate and upload the PDF
     logger.info(f"Generating PDF for user: {data.owner_name}")
     pdf_stream = pdf_generator.generate(data)
@@ -155,17 +161,59 @@ async def submit(
     logger.info(f"PDF generated successfully: {filename}")
     logger.debug(f"PDF properties: {properties}")
 
+    # Upload the PDF to Google Drive
     logger.info(f"Uploading PDF: {filename}")
-    file_id = storage_client.upload(
-        pdf_stream, filename, config.HEPI_PDF_RESULT_DRIVE_ID, properties
-    )
-
+    file_id = upload_file(pdf_stream, filename, storage_client)
     if data.owner_email:
         logger.info(f"Sharing PDF with email: {data.owner_email}")
         storage_client.share(file_id, data.owner_email)
 
+    # Upload the supplementary documents if it exists
+    logger.info("Uploading supplementary documents")
+    if file := data.property_certificate_file:
+        upload_file(
+            file,
+            filename.replace(".pdf", "_property_certificate.pdf"),
+            storage_client,
+        )
+
+    if file := data.owner_ktp_file:
+        upload_file(
+            file,
+            filename.replace(".pdf", "_owner_ktp.pdf"),
+            storage_client,
+        )
+
+    if file := data.property_pbb_file:
+        upload_file(
+            file,
+            filename.replace(".pdf", "_property_pbb.pdf"),
+            storage_client,
+        )
+
+    if file := data.property_imb_file:
+        upload_file(
+            file,
+            filename.replace(".pdf", "_property_imb.pdf"),
+            storage_client,
+        )
+
     logger.info(f"PDF uploaded and shared successfully: {file_id}")
     return {"message": "PDF uploaded and shared", "file_id": file_id}
+
+
+def upload_file(
+    file: bytes,
+    filename: str,
+    storage_client: StorageClient = Depends(get_storage_client),
+) -> str:
+    """
+    Upload a document to Storage Client.
+    """
+    logger.info(f"Uploading document: {filename}")
+    file_id = storage_client.upload(file, filename, config.HEPI_PDF_RESULT_DRIVE_ID)
+    logger.info(f"Document uploaded successfully: {file_id}")
+    return file_id
 
 
 @app.get("/pdf/{response_id}")

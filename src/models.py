@@ -418,6 +418,24 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
 
     @computed_field
     @cached_property
+    def owner_signature_url(self) -> Optional[str]:
+        return self._fields_dict.get("owner_signature").get_first_url()
+
+    @cached_property
+    def owner_signature_file(self) -> Optional[bytes]:
+        return self._fields_dict.get("owner_signature").download_first()
+
+    @computed_field
+    @cached_property
+    def agent_signature_url(self) -> Optional[str]:
+        return self._fields_dict.get("agent_signature").get_first_url()
+
+    @cached_property
+    def agent_signature_file(self) -> Optional[bytes]:
+        return self._fields_dict.get("agent_signature").download_first()
+
+    @computed_field
+    @cached_property
     def success_fee(self) -> Optional[int]:
         return self._fields_dict.get("success_fee").get_value()
 
