@@ -39,6 +39,4 @@ class PDFKitPerjanjianJasaPemasaranPropertiPDFGenerator(
             "encoding": "UTF-8",
         }
 
-        pdf_stream = io.BytesIO(pdfkit.from_string(rendered, options=options))
-        pdf_stream.seek(0)
-        return pdf_stream
+        return pdfkit.from_string(rendered, options=options)

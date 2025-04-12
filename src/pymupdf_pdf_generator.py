@@ -15,7 +15,7 @@ class PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator(
         self.line_height = 15
         self.current_y = 50
 
-    def generate(self, data: DataPerjanjianPemasaranProperti) -> io.BytesIO:
+    def generate(self, data: DataPerjanjianPemasaranProperti) -> bytes:
         doc = pymupdf.open()
         page = doc.new_page()
 
@@ -175,7 +175,7 @@ class PyMuPDFPerjanjianJasaPemasaranPropertiPDFGenerator(
         doc.close()
         pdf_stream.seek(0)
 
-        return pdf_stream
+        return pdf_stream.read()
 
     def _draw_header(self, page, text):
         page.insert_text(

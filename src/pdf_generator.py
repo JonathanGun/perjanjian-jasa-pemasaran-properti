@@ -5,11 +5,11 @@ from src.models import DataPerjanjianPemasaranProperti
 
 class PDFGenerator(abc.ABC):
     @abc.abstractmethod
-    def generate(self, *args, **kwargs) -> io.BytesIO:
+    def generate(self, *args, **kwargs) -> bytes:
         pass
 
 
 class PerjanjianJasaPemasaranPropertiPDFGenerator(PDFGenerator, abc.ABC):
     @abc.abstractmethod
-    def generate(self, data: DataPerjanjianPemasaranProperti) -> io.BytesIO:
+    def generate(self, data: DataPerjanjianPemasaranProperti) -> bytes:
         pass

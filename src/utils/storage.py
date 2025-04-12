@@ -50,8 +50,8 @@ class GoogleDriveClient(StorageClient):
 
     def upload(
         self,
-        file_stream,
-        filename,
+        file_stream: bytes,
+        filename: str,
         folder_id=None,
         custom_property=None,
     ):
@@ -59,7 +59,7 @@ class GoogleDriveClient(StorageClient):
         file_metadata = {"name": filename}
         if folder_id:
             file_metadata["parents"] = [folder_id]
-        media = MediaIoBaseUpload(file_stream, mimetype="application/pdf")
+        media = MediaIoBaseUpload(io.BytesIO(file_stream), mimetype="application/pdf")
         file = (
             self.service.files()
             .create(body=file_metadata, media_body=media, fields="id")
