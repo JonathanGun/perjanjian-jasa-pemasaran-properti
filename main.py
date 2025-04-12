@@ -164,7 +164,7 @@ async def submit(
 
     # Upload the PDF to Google Drive
     logger.info(f"Uploading PDF: {filename}")
-    file_id = upload_file(pdf_stream, filename, storage_client, properties)
+    file_id = upload_file(pdf_stream, filename, "application/pdf", storage_client, properties)
     if data.owner_email:
         logger.info(f"Sharing PDF with email: {data.owner_email}")
         storage_client.share(file_id, data.owner_email)
@@ -178,7 +178,7 @@ async def submit(
             upload_filename = upload_filename.replace(".pdf", ".jpg")
         elif mimetype == "image/png":
             upload_filename = upload_filename.replace(".pdf", ".png")
-        upload_file(file, upload_filename, storage_client)
+        upload_file(file, upload_filename, mimetype, storage_client)
 
     if file := data.owner_ktp_file:
         upload_filename = filename.replace(".pdf", "_owner_ktp.pdf")
@@ -187,7 +187,7 @@ async def submit(
             upload_filename = upload_filename.replace(".pdf", ".jpg")
         elif mimetype == "image/png":
             upload_filename = upload_filename.replace(".pdf", ".png")
-        upload_file(file, upload_filename, storage_client)
+        upload_file(file, upload_filename, mimetype, storage_client)
 
     if file := data.property_pbb_file:
         upload_filename = filename.replace(".pdf", "_property_pbb.pdf")
@@ -196,7 +196,7 @@ async def submit(
             upload_filename = upload_filename.replace(".pdf", ".jpg")
         elif mimetype == "image/png":
             upload_filename = upload_filename.replace(".pdf", ".png")
-        upload_file(file, filename.replace(".pdf", "_property_pbb.pdf"), storage_client)
+        upload_file(file, upload_filename, mimetype, storage_client)
 
     if file := data.property_imb_file:
         upload_filename = filename.replace(".pdf", "_property_imb.pdf")
@@ -205,7 +205,7 @@ async def submit(
             upload_filename = upload_filename.replace(".pdf", ".jpg")
         elif mimetype == "image/png":
             upload_filename = upload_filename.replace(".pdf", ".png")
-        upload_file(file, filename.replace(".pdf", "_property_imb.pdf"), storage_client)
+        upload_file(file, upload_filename, mimetype, storage_client)
 
     logger.info(f"PDF uploaded and shared successfully: {file_id}")
     return {"message": "PDF uploaded and shared", "file_id": file_id}
@@ -214,6 +214,7 @@ async def submit(
 def upload_file(
     file: bytes,
     filename: str,
+    file_mimetype: str = "application/pdf",
     storage_client: StorageClient = Depends(get_storage_client),
     custom_property: dict = None,
 ) -> str:
@@ -221,7 +222,9 @@ def upload_file(
     Upload a document to Storage Client.
     """
     logger.info(f"Uploading document: {filename}")
-    file_id = storage_client.upload(file, filename, config.HEPI_PDF_RESULT_DRIVE_ID, custom_property)
+    file_id = storage_client.upload(
+        file, filename, file_mimetype, config.HEPI_PDF_RESULT_DRIVE_ID, custom_property
+    )
     logger.info(f"Document uploaded successfully: {file_id}")
     return file_id
 

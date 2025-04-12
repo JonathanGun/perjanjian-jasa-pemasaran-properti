@@ -18,7 +18,12 @@ class FileRole(enum.Enum):
 class StorageClient(abc.ABC):
     @abc.abstractmethod
     def upload(
-        self, file_stream: io.BytesIO, filename: str, folder_id: Optional[str] = None
+        self,
+        file_stream: io.BytesIO,
+        filename: str,
+        file_mimetype: str = "application/pdf",
+        folder_id=None,
+        custom_property=None,
     ) -> str:
         pass
 
@@ -53,6 +58,7 @@ class GoogleDriveClient(StorageClient):
         self,
         file_stream: bytes,
         filename: str,
+        file_mimetype: str = "application/pdf",
         folder_id=None,
         custom_property=None,
     ):
@@ -62,14 +68,10 @@ class GoogleDriveClient(StorageClient):
         file_metadata = {"name": filename}
         if folder_id:
             file_metadata["parents"] = [folder_id]
-        media = MediaIoBaseUpload(io.BytesIO(file_stream), mimetype="application/pdf")
+        media = MediaIoBaseUpload(io.BytesIO(file_stream), mimetype=file_mimetype)
         file = (
             self.service.files()
-            .create(
-                body=file_metadata,
-                media_body=media,
-                fields="id"
-            )
+            .create(body=file_metadata, media_body=media, fields="id")
             .execute()
         )
         file_id = file.get("id")
@@ -153,7 +155,12 @@ class LocalStorageClient(StorageClient):
     DIRECTORY = "logs"
 
     def upload(
-        self, file_stream: bytes, filename: str, folder_id=None, properties=None
+        self,
+        file_stream: bytes,
+        filename: str,
+        file_mimetype: str = "application/pdf",
+        folder_id=None,
+        custom_property=None,
     ) -> str:
         with open(f"{self.DIRECTORY}/{filename}", "wb") as f:
             f.write(file_stream)
