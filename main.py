@@ -171,32 +171,40 @@ async def submit(
     # Upload the supplementary documents if it exists
     logger.info("Uploading supplementary documents")
     if file := data.property_certificate_file:
-        upload_file(
-            file,
-            filename.replace(".pdf", "_property_certificate.pdf"),
-            storage_client,
-        )
+        upload_filename = filename.replace(".pdf", "_property_certificate.pdf")
+        mimetype = data.property_certificate_mime_type
+        if mimetype == "image/jpeg":
+            upload_filename = upload_filename.replace(".pdf", ".jpg")
+        elif mimetype == "image/png":
+            upload_filename = upload_filename.replace(".pdf", ".png")
+        upload_file(file, upload_filename, storage_client)
 
     if file := data.owner_ktp_file:
-        upload_file(
-            file,
-            filename.replace(".pdf", "_owner_ktp.pdf"),
-            storage_client,
-        )
+        upload_filename = filename.replace(".pdf", "_owner_ktp.pdf")
+        mimetype = data.owner_ktp_mime_type
+        if mimetype == "image/jpeg":
+            upload_filename = upload_filename.replace(".pdf", ".jpg")
+        elif mimetype == "image/png":
+            upload_filename = upload_filename.replace(".pdf", ".png")
+        upload_file(file, upload_filename, storage_client)
 
     if file := data.property_pbb_file:
-        upload_file(
-            file,
-            filename.replace(".pdf", "_property_pbb.pdf"),
-            storage_client,
-        )
+        upload_filename = filename.replace(".pdf", "_property_pbb.pdf")
+        mimetype = data.property_pbb_mime_type
+        if mimetype == "image/jpeg":
+            upload_filename = upload_filename.replace(".pdf", ".jpg")
+        elif mimetype == "image/png":
+            upload_filename = upload_filename.replace(".pdf", ".png")
+        upload_file(file, filename.replace(".pdf", "_property_pbb.pdf"), storage_client)
 
     if file := data.property_imb_file:
-        upload_file(
-            file,
-            filename.replace(".pdf", "_property_imb.pdf"),
-            storage_client,
-        )
+        upload_filename = filename.replace(".pdf", "_property_imb.pdf")
+        mimetype = data.property_imb_mime_type
+        if mimetype == "image/jpeg":
+            upload_filename = upload_filename.replace(".pdf", ".jpg")
+        elif mimetype == "image/png":
+            upload_filename = upload_filename.replace(".pdf", ".png")
+        upload_file(file, filename.replace(".pdf", "_property_imb.pdf"), storage_client)
 
     logger.info(f"PDF uploaded and shared successfully: {file_id}")
     return {"message": "PDF uploaded and shared", "file_id": file_id}

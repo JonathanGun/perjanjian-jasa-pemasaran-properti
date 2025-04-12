@@ -99,6 +99,12 @@
             vertical-align: bottom;
         }
 
+        .signature {
+            width: 80%;
+            height: 100px;
+            margin: auto;
+        }
+
         .signature-line {
             display: block;
             border-bottom: 1px solid black;
@@ -332,7 +338,6 @@ Rp {{ "{:,}".format(value).replace(",", ".") }}
             pihak Hepi Property dari permasalahan kepemilikan properti tersebut</li>
     </ul>
 
-
     <table class="checkbox-table">
         <tr>
             <td>{{ checkbox(agreement_online_marketing) }}<span>Pihak marketing dapat memasarkan properti
@@ -356,17 +361,19 @@ Rp {{ "{:,}".format(value).replace(",", ".") }}
         <tr>
             <td>
                 <strong>Pihak Pemilik</strong>
-                <div class="signature-line">
-                    <img src="{{ owner_signature }}" alt="Signature Owner" width="250">
+                <div class="signature">
+                    <img src="{{ owner_signature }}" width="100%">
                 </div>
+                <div class="signature-line"></div>
                 <p>{{ owner_name }}</p>
             </td>
             <td></td>
             <td>
                 <strong>Pihak Marketing</strong>
-                <div class="signature-line">
-                    <img src="{{ agent_signature }}" alt="Signature Agent" width="250">
+                <div class="signature">
+                    <img src="{{ agent_signature }}" width="100%">
                 </div>
+                <div class="signature-line"></div>
                 <p>{{ agent_name }}</p>
             </td>
         </tr>

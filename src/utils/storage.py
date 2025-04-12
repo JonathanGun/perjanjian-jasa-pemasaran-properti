@@ -138,9 +138,9 @@ class GoogleDriveClient(StorageClient):
 class LocalStorageClient(StorageClient):
     DIRECTORY = "logs"
 
-    def upload(self, file_stream, filename, folder_id=None, properties=None) -> str:
+    def upload(self, file_stream: bytes, filename: str, folder_id=None, properties=None) -> str:
         with open(f"{self.DIRECTORY}/{filename}", "wb") as f:
-            f.write(file_stream.read())
+            f.write(file_stream)
         return filename
 
     def share(self, file_id, email, role=FileRole.READER):

@@ -79,6 +79,24 @@ class MediaFields(BaseField):
     def download_first(self) -> Optional[bytes]:
         return self.value[0].download() if self.value else None
 
+    def get_names(self) -> List[str]:
+        return [media.name for media in self.value]
+
+    def get_first_name(self) -> Optional[str]:
+        return self.value[0].name if self.value else None
+
+    def get_mime_types(self) -> List[str]:
+        return [media.mimeType for media in self.value]
+
+    def get_first_mime_type(self) -> Optional[str]:
+        return self.value[0].mimeType if self.value else None
+
+    def get_sizes(self) -> List[int]:
+        return [media.size for media in self.value]
+
+    def get_first_size(self) -> Optional[int]:
+        return self.value[0].size if self.value else None
+
 
 class InputTextField(BaseField):
     type: Annotated[str, StringConstraints(pattern=r"INPUT_TEXT")]
@@ -361,6 +379,14 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("property_certificate_file").get_first_url()
 
     @cached_property
+    def property_certificate_filename(self) -> Optional[str]:
+        return self._fields_dict.get("property_certificate_file").get_first_name()
+
+    @cached_property
+    def property_certificate_mime_type(self) -> Optional[str]:
+        return self._fields_dict.get("property_certificate_file").get_first_mime_type()
+
+    @cached_property
     def property_certificate_file(self) -> Optional[bytes]:
         return self._fields_dict.get("property_certificate_file").download_first()
 
@@ -368,6 +394,14 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     @cached_property
     def owner_ktp_url(self) -> Optional[str]:
         return self._fields_dict.get("owner_ktp_file").get_first_url()
+
+    @cached_property
+    def owner_ktp_filename(self) -> Optional[str]:
+        return self._fields_dict.get("owner_ktp_file").get_first_name()
+
+    @cached_property
+    def owner_ktp_mime_type(self) -> Optional[str]:
+        return self._fields_dict.get("owner_ktp_file").get_first_mime_type()
 
     @cached_property
     def owner_ktp_file(self) -> Optional[bytes]:
@@ -379,6 +413,14 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
         return self._fields_dict.get("property_pbb_file").get_first_url()
 
     @cached_property
+    def property_pbb_filename(self) -> Optional[str]:
+        return self._fields_dict.get("property_pbb_file").get_first_name()
+
+    @cached_property
+    def property_pbb_mime_type(self) -> Optional[str]:
+        return self._fields_dict.get("property_pbb_file").get_first_mime_type()
+
+    @cached_property
     def property_pbb_file(self) -> Optional[bytes]:
         return self._fields_dict.get("property_pbb_file").download_first()
 
@@ -386,6 +428,14 @@ class DataPerjanjianPemasaranProperti(TallyWebhookEvent):
     @cached_property
     def property_imb_url(self) -> Optional[str]:
         return self._fields_dict.get("property_imb_file").get_first_url()
+
+    @cached_property
+    def property_imb_filename(self) -> Optional[str]:
+        return self._fields_dict.get("property_imb_file").get_first_name()
+
+    @cached_property
+    def property_imb_mime_type(self) -> Optional[str]:
+        return self._fields_dict.get("property_imb_file").get_first_mime_type()
 
     @cached_property
     def property_imb_file(self) -> Optional[bytes]:
