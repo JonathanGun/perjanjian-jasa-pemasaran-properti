@@ -105,16 +105,19 @@ class GoogleDriveClient(StorageClient):
 
     def get_file_url(self, response_id):
         """Generate a sharable link for the file."""
-        file_info = self._get_file_by_response_id(response_id)
-        if not file_info:
-            raise FileNotFoundError(f"File not found: {response_id}")
+        try:
+            file_info = self._get_file_by_response_id(response_id)
+            if not file_info:
+                raise FileNotFoundError(f"File not found: {response_id}")
 
-        file = (
-            self.service.files()
-            .get(fileId=file_info["id"], fields="webViewLink")
-            .execute()
-        )
-        return file.get("webViewLink")
+            file = (
+                self.service.files()
+                .get(fileId=file_info["id"], fields="webViewLink")
+                .execute()
+            )
+            return file.get("webViewLink")
+        except FileNotFoundError:
+            return ""
 
     def download(self, response_id):
         """Download a file by its ID."""
