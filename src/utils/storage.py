@@ -1,6 +1,7 @@
 import abc
 import enum
 import io
+from src.utils.logger import logger
 from typing import Dict, Optional
 from google.auth import default
 from googleapiclient.discovery import build
@@ -56,13 +57,19 @@ class GoogleDriveClient(StorageClient):
         custom_property=None,
     ):
         """Upload a file to Google Drive."""
+        logger.info(f"Uploading file: {filename}")
+        logger.debug(f"File stream size: {len(file_stream)} bytes")
         file_metadata = {"name": filename}
         if folder_id:
             file_metadata["parents"] = [folder_id]
         media = MediaIoBaseUpload(io.BytesIO(file_stream), mimetype="application/pdf")
         file = (
             self.service.files()
-            .create(body=file_metadata, media_body=media, fields="id")
+            .create(
+                body=file_metadata,
+                media_body=media,
+                fields="id"
+            )
             .execute()
         )
         file_id = file.get("id")
@@ -72,6 +79,8 @@ class GoogleDriveClient(StorageClient):
 
     def _set_custom_property(self, file_id: str, properties: Dict[str, str]):
         """Set custom properties for a file."""
+        logger.info(f"Setting custom properties for file ID: {file_id}")
+        logger.debug(f"Custom properties: {properties}")
         self.service.files().update(
             fileId=file_id,
             body={"properties": properties},
@@ -80,6 +89,7 @@ class GoogleDriveClient(StorageClient):
 
     def share(self, file_id, email, role=FileRole.READER):
         """Share a file with a specific email."""
+        logger.info(f"Sharing file ID: {file_id} with email: {email}")
         if not email:
             raise ValueError("Email address is required")
 
@@ -96,31 +106,34 @@ class GoogleDriveClient(StorageClient):
 
     def _get_file_by_response_id(self, response_id: str):
         """Get a file ID by its response_id."""
+        logger.info(f"Searching for file with response_id: {response_id}")
         query = f"properties has {{ key='response_id' and value='{response_id}' }}"
         results = self.service.files().list(q=query, fields="files(id, name)").execute()
         files = results.get("files", [])
+        logger.debug(f"Found {len(files)} files for response_id: {response_id}")
         if files:
             return files[0]  # Return the first match
+        logger.warning(f"File not found for response_id: {response_id}")
         return None
 
     def get_file_url(self, response_id):
         """Generate a sharable link for the file."""
-        try:
-            file_info = self._get_file_by_response_id(response_id)
-            if not file_info:
-                raise FileNotFoundError(f"File not found: {response_id}")
-
-            file = (
-                self.service.files()
-                .get(fileId=file_info["id"], fields="webViewLink")
-                .execute()
-            )
-            return file.get("webViewLink")
-        except FileNotFoundError:
+        logger.info(f"Generating file URL for response_id: {response_id}")
+        file_info = self._get_file_by_response_id(response_id)
+        if not file_info:
+            logger.warning(f"File not found for response_id: {response_id}")
             return ""
+
+        file = (
+            self.service.files()
+            .get(fileId=file_info["id"], fields="webViewLink")
+            .execute()
+        )
+        return file.get("webViewLink")
 
     def download(self, response_id):
         """Download a file by its ID."""
+        logger.info(f"Downloading file with response_id: {response_id}")
         file_info = self._get_file_by_response_id(response_id)
         if not file_info:
             raise FileNotFoundError(f"File not found: {response_id}")
@@ -131,6 +144,7 @@ class GoogleDriveClient(StorageClient):
         done = False
         while done is False:
             status, done = downloader.next_chunk()
+            logger.info(f"Download {int(status.progress() * 100)}% complete.")
         file_stream.seek(0)
         return file_stream
 
@@ -138,7 +152,9 @@ class GoogleDriveClient(StorageClient):
 class LocalStorageClient(StorageClient):
     DIRECTORY = "logs"
 
-    def upload(self, file_stream: bytes, filename: str, folder_id=None, properties=None) -> str:
+    def upload(
+        self, file_stream: bytes, filename: str, folder_id=None, properties=None
+    ) -> str:
         with open(f"{self.DIRECTORY}/{filename}", "wb") as f:
             f.write(file_stream)
         return filename

@@ -151,6 +151,7 @@ async def submit(
     if existing_file:
         logger.info(f"File already exists: {existing_file}")
         return {"message": "File already exists", "file_url": existing_file}
+    logger.info(f"File does not exist, proceeding with PDF generation")
 
     # Generate and upload the PDF
     logger.info(f"Generating PDF for user: {data.owner_name}")
@@ -163,7 +164,7 @@ async def submit(
 
     # Upload the PDF to Google Drive
     logger.info(f"Uploading PDF: {filename}")
-    file_id = upload_file(pdf_stream, filename, storage_client)
+    file_id = upload_file(pdf_stream, filename, storage_client, properties)
     if data.owner_email:
         logger.info(f"Sharing PDF with email: {data.owner_email}")
         storage_client.share(file_id, data.owner_email)
@@ -214,12 +215,13 @@ def upload_file(
     file: bytes,
     filename: str,
     storage_client: StorageClient = Depends(get_storage_client),
+    custom_property: dict = None,
 ) -> str:
     """
     Upload a document to Storage Client.
     """
     logger.info(f"Uploading document: {filename}")
-    file_id = storage_client.upload(file, filename, config.HEPI_PDF_RESULT_DRIVE_ID)
+    file_id = storage_client.upload(file, filename, config.HEPI_PDF_RESULT_DRIVE_ID, custom_property)
     logger.info(f"Document uploaded successfully: {file_id}")
     return file_id
 
